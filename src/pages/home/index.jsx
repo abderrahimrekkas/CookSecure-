@@ -43,7 +43,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center text-gray-600 text-lg font-medium">
-              Nothing to show. Please search something.
+              Nothing to display. Please search something.
             </div>
           )}
         </div>
