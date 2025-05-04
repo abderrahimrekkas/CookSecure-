@@ -1,10 +1,11 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlobalContext } from '../../context';
+import { v4 as uuidv4 } from 'uuid'; // Import UUID
 
 export default function AddRecipe() {
     const navigate = useNavigate();
-    const { addToFavorites } = useContext(GlobalContext);
+    const { addRecipe } = useContext(GlobalContext);
 
     const [form, setForm] = useState({
         title: '',
@@ -12,44 +13,61 @@ export default function AddRecipe() {
         instructions: ''
     });
 
-    const [image, setImage] = useState(null);  //Ajout pour le fichier image
+    const [image, setImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null); // New state for image preview
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
     const handleImageChange = (e) => {
-        setImage(e.target.files[0]); //  Capture le fichier sélectionné
+        const selectedImage = e.target.files[0];
+        setImage(selectedImage);
+
+        if (selectedImage) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result); // Set the data URL
+            };
+            reader.readAsDataURL(selectedImage); // Read the image as a data URL
+        } else {
+            setImagePreview(null);
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
-            const formData = new FormData();
-            formData.append("title", form.title);
-            formData.append("ingredients", form.ingredients);
-            formData.append("instructions", form.instructions);
-            if (image) {
-                formData.append("image", image); //  Ajoute l'image au FormData
-            }
+            // Create a unique ID for the recipe
+            const recipeId = uuidv4();
 
-            const res = await fetch("http://localhost:4000/recipes", {
-                method: "POST",
-                body: formData //  pas besoin de JSON.stringify ici
-            });
+            // Create a new recipe object
+            const newRecipe = {
+                id: recipeId, // Use the generated ID
+                title: form.title,
+                ingredients: form.ingredients,
+                instructions: form.instructions,
+                image: imagePreview, // Use the data URL
+            };
 
-            if (!res.ok) {
-                const errorText = await res.text();
-                throw new Error(`Failed to add recipe: ${res.status} - ${errorText}`);
-            }
+            // Get existing recipes from local storage
+            const storedRecipes = localStorage.getItem('recipes');
+            const recipes = storedRecipes ? JSON.parse(storedRecipes) : [];
 
-            const newRecipe = await res.json();
-            addToFavorites(newRecipe);
+            // Add the new recipe to the array
+            recipes.push(newRecipe);
 
-            navigate("/favorites"); //  corrige la route si elle est mal orthographiée
+            // Save the updated recipes array back to local storage
+            localStorage.setItem('recipes', JSON.stringify(recipes));
+
+            // Add the recipe to the global context
+            addRecipe(newRecipe);
+
+            navigate("/home");
+
         } catch (error) {
-            console.error(error.message);
+            console.error("Error adding recipe:", error);
             alert("Failed to add recipe. Please check the console for details.");
         }
     };
@@ -92,6 +110,12 @@ export default function AddRecipe() {
                         onChange={handleImageChange}
                         className="mb-6 w-full p-3 rounded-lg border border-gray-300"
                     />
+
+                    {/* Display the image preview */}
+                    {imagePreview && (
+                        <img src={imagePreview} alt="Image Preview" className="mb-4 w-32 h-32 object-cover rounded-full" />
+                    )}
+
                     <button
                         type="submit"
                         className="w-full bg-teal-500 text-white py-3 rounded-lg hover:bg-teal-600 transition"

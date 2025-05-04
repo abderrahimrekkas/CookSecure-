@@ -1,15 +1,16 @@
 import { useContext } from "react";
-import { useNavigate } from "react-router-dom"; // 👈 import de useNavigate
+import { useNavigate } from "react-router-dom";
 import { GlobalContext } from "../../context";
 import RecipeItem from "../../components/recipe-item";
 import Navbar from "../../components/navbar";
 
 export default function Home() {
   const { recipeList, loading } = useContext(GlobalContext);
-  const navigate = useNavigate(); // 👈 initialisation du hook
+  const navigate = useNavigate();
 
+  // Fonction pour rediriger vers la page d'ajout de recette
   const handleAddRecipe = () => {
-    navigate("/addrecipe"); // 👈 redirection vers le formulaire
+    navigate("/addrecipe");
   };
 
   return (
@@ -31,19 +32,21 @@ export default function Home() {
             </button>
           </div>
 
+          {/* Chargement ou affichage des recettes */}
           {loading ? (
             <div className="text-center text-teal-500 text-lg font-medium">
               Loading... Please wait!
             </div>
           ) : recipeList && recipeList.length > 0 ? (
+            // Affichage des recettes sous forme de cartes
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recipeList.map((item, index) => (
-                <RecipeItem key={index} item={item} />
+              {recipeList.map((item) => (
+                <RecipeItem key={item._id} item={item} />
               ))}
             </div>
           ) : (
             <div className="text-center text-gray-600 text-lg font-medium">
-              Nothing to display. Please search something.
+              No recipes available. Add one now!
             </div>
           )}
         </div>
@@ -51,3 +54,4 @@ export default function Home() {
     </div>
   );
 }
+

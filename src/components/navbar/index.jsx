@@ -35,7 +35,7 @@ export default function Navbar() {
           <NavLink
             to={"/favorites"}
             className="text-black hover:text-gray-700 duration-300">
-            favorite
+            favorites
           </NavLink>
         </li>
       </ul>
